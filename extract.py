@@ -7,7 +7,7 @@ import openpyxl
 from translate import translate
 
 
-def extract(bot_path, excel_path, source, target):
+def extract(bot_path, excel_path, source, target, use_google_translate):
     print("Loading texts from bot " + bot_path)
     # Extract the bot to a temporary directory
     with tempfile.TemporaryDirectory() as temporary_directory:
@@ -161,10 +161,13 @@ def extract(bot_path, excel_path, source, target):
                         )
                     )
 
-        # Translate the text using Google Translate API
-        print("Translating texts...")
         texts_to_translate = [text for _, text in entries]
-        translated_texts = translate(texts_to_translate, source, target)
+        # Translate the text using Google Translate API
+        if use_google_translate:    
+            print("Translating texts...")
+            translated_texts = translate(texts_to_translate, source, target)
+        else:
+            translated_texts = {input: input for input in texts_to_translate}
 
         print("Writing Excel file...")
         # Create a new excel file

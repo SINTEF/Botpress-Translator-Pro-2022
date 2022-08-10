@@ -9,16 +9,10 @@
 # Target language: The language of the new chatbot, default to french
 
 import argparse
-from distutils.fancy_getopt import wrap_text
+from distutils.util import strtobool
 import glob
-import json
-import tarfile
-import tempfile
-import openpyxl
 from extract import extract
 from pack import pack
-
-from translate import translate
 
 args = argparse.ArgumentParser()
 args.add_argument(
@@ -60,6 +54,13 @@ args.add_argument(
     default='new.tgz'
 )
 
+args.add_argument(
+    '-g',
+    '--google',
+    help='Should the file be translated using google translate',
+    default=True,
+)
+
 if __name__ == "__main__":
     args = args.parse_args()
 
@@ -72,6 +73,7 @@ if __name__ == "__main__":
             exit(1)
 
     if args.mode == "extract":
-        extract(bot_path, args.excel, args.source, args.target)
+        google = strtobool(args.google)
+        extract(bot_path, args.excel, args.source, args.target, google)
     elif args.mode == "pack":
         pack(bot_path, args.excel, args.new)
