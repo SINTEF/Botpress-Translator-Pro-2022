@@ -32,3 +32,15 @@ python botpress_translator_pro_2022.py --mode=pack \
   --bot botpress_exported_bot.tgz --excel bot_translations_fr.xlsx \
   --new bot_translated.tgz
 ```
+
+### Create a new translation file by reusing an existing translation file:
+
+```bash
+python botpress_translator_pro_2022.py --mode=extract \
+  --source=en --target=fr --google=true \
+  --bot botpress_exported_bot.tgz --excel new_bot_translations_fr.xlsx \
+  --previous existing_bot_translations_fr.xlsx
+```
+
+New translations will be highlighted in orange and the file is ready to be used to convert a new chatbot archive.
+
