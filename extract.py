@@ -1,13 +1,19 @@
-import glob
 import json
 import tarfile
 import tempfile
 import openpyxl
 
 from translate import translate
+from load_translations_from_excel import load_translations_from_excel
 
 
-def extract(bot_path, excel_path, source, target, use_google_translate):
+def extract(bot_path, excel_path, source, target, use_google_translate, previous):
+
+    if previous:
+        translations = load_translations_from_excel(previous)
+    else:
+        translations = dict()
+
     print("Loading texts from bot " + bot_path)
     # Extract the bot to a temporary directory
     with tempfile.TemporaryDirectory() as temporary_directory:
@@ -161,13 +167,20 @@ def extract(bot_path, excel_path, source, target, use_google_translate):
                         )
                     )
 
-        texts_to_translate = [text for _, text in entries]
+        # Remove entries that are already translated
+        # translations is a dictionary of tuples (english, translation)
+        english_translations = set([translation[0] for translation in translations.values()])
+        texts_to_translate = [text for _, text in entries if text not in english_translations]
+
         # Translate the text using Google Translate API
         if use_google_translate:    
-            print("Translating texts...")
+            print(f"Translating {len(texts_to_translate)} texts using Google Translate")
             translated_texts = translate(texts_to_translate, source, target)
         else:
             translated_texts = {input: input for input in texts_to_translate}
+
+
+        all_translated_texts = {**translated_texts, **{value[0]: value[1] for value in translations.values()}}
 
         print("Writing Excel file...")
         # Create a new excel file
@@ -179,7 +192,7 @@ def extract(bot_path, excel_path, source, target, use_google_translate):
         ws.append(["Identifier", "Original English Text", "Translation"])
         # ws.append(entries)
         for (id, text) in entries:
-            ws.append([id, text, translated_texts[text]])
+            ws.append([id, text, all_translated_texts[text]])
 
         idStyle = openpyxl.styles.NamedStyle(name="id")
         idStyle.font = openpyxl.styles.Font(
@@ -223,6 +236,19 @@ def extract(bot_path, excel_path, source, target, use_google_translate):
             vertical="top",
             wrap_text=True,
         )
+        newTranslationStyle = openpyxl.styles.NamedStyle(name="newTranslation")
+        newTranslationStyle.font = openpyxl.styles.Font(
+            name="Calibri",
+        )
+        newTranslationStyle.alignment = openpyxl.styles.Alignment(
+            vertical="top",
+            wrap_text=True,
+        )
+        newTranslationStyle.fill = openpyxl.styles.PatternFill(
+            # Light orange
+            fgColor="FFCC99",
+            fill_type="solid",
+        )
         ws["A1"].style = idStyle
         ws.column_dimensions["A"].width = 20
         ws.column_dimensions["B"].width = 30
@@ -247,6 +273,10 @@ def extract(bot_path, excel_path, source, target, use_google_translate):
         for row in ws.iter_rows(min_row=2, max_row=ws.max_row, min_col=3, max_col=3):
             for cell in row:
                 cell.style = translationStyle
+                if previous:
+                    english_cell = cell.offset(column=-1)
+                    if not english_cell.value in english_translations:
+                        cell.style = newTranslationStyle
                 # Unlock the translation rows
                 cell.protection = openpyxl.styles.protection.Protection(locked=False)
         wb.save(excel_path)

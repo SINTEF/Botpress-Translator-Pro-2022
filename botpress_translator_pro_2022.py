@@ -35,6 +35,12 @@ args.add_argument(
     default="translations.xlsx",
 )
 args.add_argument(
+    "-p",
+    "--previous",
+    help="Path to the excel file containing the previous translations",
+    default="",
+)
+args.add_argument(
     "-s",
     "--source",
     help="Source language of the chatbot, default to english",
@@ -73,7 +79,13 @@ if __name__ == "__main__":
             exit(1)
 
     if args.mode == "extract":
-        google = strtobool(args.google)
-        extract(bot_path, args.excel, args.source, args.target, google)
+        extract(
+            bot_path,
+            excel_path=args.excel,
+            source=args.source,
+            target=args.target,
+            use_google_translate=strtobool(args.google),
+            previous=args.previous,
+        )
     elif args.mode == "pack":
         pack(bot_path, args.excel, args.new)

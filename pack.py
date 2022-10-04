@@ -1,22 +1,11 @@
 import json
 import tarfile
 import tempfile
-import openpyxl
 import os
+from load_translations_from_excel import load_translations_from_excel
 
 def pack(bot_path, excel_path, new_path):
-    print("Load translations from excel " + excel_path)
-    wb = openpyxl.load_workbook(excel_path)
-    ws = wb.active
-
-    # Create a dictionary of translations, the key is the path
-    # The value is a tuple that contains the english and the translation
-    translations=dict()
-
-    # Build the dictionary
-    for row in list(ws.rows)[1:]:
-        [ path, english, translation ] = [ cell.value for cell in row ]
-        translations[path] = (english, translation)
+    translations = load_translations_from_excel(excel_path)
 
     def get_translation(path, expected_existing_english):
         if not path in translations:
