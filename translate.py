@@ -12,6 +12,8 @@ def translate(texts, source, target):
     # Remove duplicates from texts
     texts = list(set(texts))
 
+    # Remove None from texts
+    texts = [text for text in texts if text is not None]
 
     # Do batch of maximum 128 texts at a time
     texts_chunks = [texts[i:i+128] for i in range(0, len(texts), 128)]

@@ -167,13 +167,16 @@ def extract(bot_path, excel_path, source, target, use_google_translate, previous
                         )
                     )
 
+        # Remove entries with the second tuple element being None
+        entries = [entry for entry in entries if entry[1] is not None]
+
         # Remove entries that are already translated
         # translations is a dictionary of tuples (english, translation)
         english_translations = set([translation[0] for translation in translations.values()])
         texts_to_translate = [text for _, text in entries if text not in english_translations]
 
         # Translate the text using Google Translate API
-        if use_google_translate:    
+        if use_google_translate:
             print(f"Translating {len(texts_to_translate)} texts using Google Translate")
             translated_texts = translate(texts_to_translate, source, target)
         else:
